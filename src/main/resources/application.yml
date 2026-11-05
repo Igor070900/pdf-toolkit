@@ -1,0 +1,22 @@
+spring:
+  application:
+    name: pdf-toolkit
+
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5434/pdf_toolkit}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:password}
+
+  jpa:
+    jpa:
+      open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.yaml
+    enabled: true
