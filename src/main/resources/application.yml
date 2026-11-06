@@ -8,8 +8,7 @@ spring:
     password: ${DB_PASSWORD:password}
 
   jpa:
-    jpa:
-      open-in-view: false
+    open-in-view: false
     hibernate:
       ddl-auto: validate
     show-sql: true
