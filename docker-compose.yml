@@ -57,6 +57,7 @@ services:
     volumes:
       - rustfs_data:/data
     healthcheck:
+      # noinspection ComposeUnknownValues
       test:
         - CMD
         - sh
@@ -100,6 +101,7 @@ services:
       - kafka_data:/var/lib/kafka/data
 
     healthcheck:
+      # noinspection ComposeUnknownValues
       test:
         - CMD-SHELL
         - /opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server localhost:9092 > /dev/null 2>&1
