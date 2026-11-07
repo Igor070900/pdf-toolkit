@@ -39,23 +39,4 @@ public class S3ClientConfiguration {
         return s3Client;
     }
 
-// временный для проверки
-//    @Bean
-//    public CommandLineRunner s3ConnectionTest(S3Client s3Client) {
-//        return args -> {
-////            var response = s3Client.listBuckets();
-//////            log.info("Successfully connected to RustFS. Buckets: {}", response.buckets());
-//            var bucketName = "pdf-input";
-//
-//            s3Client.createBucket(
-//                    CreateBucketRequest.builder()
-//                            .bucket(bucketName)
-//                            .build()
-//            );
-//            log.info("Bucket {} successfully created", bucketName);
-//
-//            var buckets = s3Client.listBuckets().buckets();
-//            log.info("Available buckets: {}", buckets);
-//        };
-//    }
 }
