@@ -2,7 +2,6 @@ package com.iedev.pdftoolkit.config;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
@@ -10,7 +9,6 @@ import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3Configuration;
-import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
 
 import java.net.URI;
 
@@ -41,23 +39,23 @@ public class S3ClientConfiguration {
         return s3Client;
     }
 
-    // временный для проверки
-    @Bean
-    public CommandLineRunner s3ConnectionTest(S3Client s3Client) {
-        return args -> {
-//            var response = s3Client.listBuckets();
-////            log.info("Successfully connected to RustFS. Buckets: {}", response.buckets());
-            var bucketName = "pdf-input";
-
-            s3Client.createBucket(
-                    CreateBucketRequest.builder()
-                            .bucket(bucketName)
-                            .build()
-            );
-            log.info("Bucket {} successfully created", bucketName);
-
-            var buckets = s3Client.listBuckets().buckets();
-            log.info("Available buckets: {}", buckets);
-        };
-    }
+// временный для проверки
+//    @Bean
+//    public CommandLineRunner s3ConnectionTest(S3Client s3Client) {
+//        return args -> {
+////            var response = s3Client.listBuckets();
+//////            log.info("Successfully connected to RustFS. Buckets: {}", response.buckets());
+//            var bucketName = "pdf-input";
+//
+//            s3Client.createBucket(
+//                    CreateBucketRequest.builder()
+//                            .bucket(bucketName)
+//                            .build()
+//            );
+//            log.info("Bucket {} successfully created", bucketName);
+//
+//            var buckets = s3Client.listBuckets().buckets();
+//            log.info("Available buckets: {}", buckets);
+//        };
+//    }
 }
