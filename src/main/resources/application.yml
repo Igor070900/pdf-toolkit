@@ -21,9 +21,25 @@ spring:
     enabled: true
 
   kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9094}
     producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
       acks: all
       properties:
         enable.idempotence: true
     consumer:
+      group-id: pdf-toolkit-conversion-workers
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: com.iedev.pdftoolkit.kafka.event
+        spring.json.value.default.type: com.iedev.pdftoolkit.kafka.event.ConversionRequestEvent
+        spring.json.use.type.headers: false
       enable-auto-commit: false
+
+s3:
+  endpoint: http://rustfs:9000
+  access-key: ${S3_ACCESS_KEY}
+  secret-key: ${S3_SECRET_KEY}
+  region: us-east-1
