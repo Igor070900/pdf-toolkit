@@ -19,6 +19,8 @@ services:
         condition: service_healthy
       kafka:
         condition: service_healthy
+    volumes:
+      - ./tmp:/tmp/pdf-toolkit-test
 
   postgres:
     image: postgres:18.6
