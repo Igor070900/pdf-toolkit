@@ -15,7 +15,9 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.List;
 
 @Component
@@ -41,20 +43,18 @@ public class TxtToPdfConverter implements FileConverter {
             float margin = 50;
             float fontSize = 12;
             float leading = 15;
-
             String line;
             boolean endOfFile = false;
 
             try (BufferedReader reader =
                              Files.newBufferedReader(source, StandardCharsets.UTF_8)) {
 
-                String pendingLine = null;
+                Deque<String> pendingLines = new ArrayDeque<>();
                 float pageWidth = PDRectangle.A4.getWidth();
                 float availableWidth = pageWidth - 2 * margin;
 
                 while (!endOfFile) {
                     PDPage page = new PDPage(PDRectangle.A4);
-                    document.addPage(page);
                     document.addPage(page);
 
                     try (PDPageContentStream contentStream = new PDPageContentStream(document, page)) {
@@ -67,33 +67,38 @@ public class TxtToPdfConverter implements FileConverter {
                         float bottomMargin = margin;
 
                         while (true) {
-                            if (pendingLine == null) {
+                            if (pendingLines.isEmpty()) {
                                 line = reader.readLine();
-                            } else {
-                                line = pendingLine;
-                                pendingLine = null;
-                            }
 
-                            if (line == null) {
-                                endOfFile = true;
-                                break;
+                                if (line == null) {
+                                    endOfFile = true;
+                                    break;
+                                }
+
+                                pendingLines.addAll(
+                                        wrapLine(line, font, fontSize, availableWidth)
+                                );
                             }
 
                             if (yPosition - leading < bottomMargin) {
-                                pendingLine = line;
                                 break;
                             }
-                            contentStream.showText(line);
-                            contentStream.newLineAtOffset(0, -leading);
 
+                            String currentLine = pendingLines.pollFirst();
+
+                            if (!currentLine.isEmpty()) {
+                                contentStream.showText(currentLine);
+                            }
+
+                            contentStream.newLineAtOffset(0, -leading);
                             yPosition -= leading;
                         }
 
                         contentStream.endText();
                     }
                 }
-                }
-
+            }
+            document.save(destination.toFile());
         }
     }
 
