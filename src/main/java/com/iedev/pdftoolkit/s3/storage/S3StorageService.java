@@ -1,4 +1,4 @@
-package com.iedev.pdftoolkit.storage;
+package com.iedev.pdftoolkit.s3.storage;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
