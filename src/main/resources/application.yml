@@ -30,13 +30,15 @@ spring:
         enable.idempotence: true
     consumer:
       group-id: pdf-toolkit-conversion-workers
+      enable-auto-commit: false
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
       properties:
         spring.json.trusted.packages: com.iedev.pdftoolkit.kafka.event
         spring.json.value.default.type: com.iedev.pdftoolkit.kafka.event.ConversionRequestEvent
         spring.json.use.type.headers: false
-      enable-auto-commit: false
+    listener:
+      ack-mode: record
 
 s3:
   endpoint: http://rustfs:9000
