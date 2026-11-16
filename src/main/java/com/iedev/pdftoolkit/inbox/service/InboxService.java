@@ -18,11 +18,11 @@ public class InboxService {
 
     @Transactional
     public void register(ConversionRequestEvent event) {
-        if (inboxRepository.existsByEventId(event.eventId())) {
+
+        int inserted = inboxRepository.insertIfAbsent(event.eventId());
+        if (inserted == 0) {
             return;
         }
-
-        inboxRepository.save(new InboxEntity(event.eventId()));
 
         conversionJobRepository.save(new ConversionJobEntity(
                 event.eventId(),

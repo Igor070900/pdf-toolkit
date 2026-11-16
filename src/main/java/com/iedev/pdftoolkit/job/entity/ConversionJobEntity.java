@@ -84,4 +84,11 @@ public class ConversionJobEntity {
     protected void onUpdate() {
         updatedAt = OffsetDateTime.now();
     }
+
+    public void markAsProcessing() {
+        this.status = JobStatus.PROCESSING;
+        this.attemptCount++;
+        this.startedAt = OffsetDateTime.now();
+        this.updatedAt = startedAt;
+    }
 }
