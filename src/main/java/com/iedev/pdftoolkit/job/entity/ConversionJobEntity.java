@@ -91,4 +91,20 @@ public class ConversionJobEntity {
         this.startedAt = OffsetDateTime.now();
         this.updatedAt = startedAt;
     }
+
+    public void markAsCompleted() {
+        this.status = JobStatus.COMPLETED;
+        this.completedAt = OffsetDateTime.now();
+        this.updatedAt = this.completedAt;
+        this.errorMessage = null;
+    }
+
+    public void markAsFailed(String errorMessage) {
+        this.status = JobStatus.FAILED;
+        this.completedAt = OffsetDateTime.now();
+        this.updatedAt = this.completedAt;
+        this.errorMessage = errorMessage;
+    }
+
+
 }
