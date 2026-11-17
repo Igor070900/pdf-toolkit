@@ -12,7 +12,14 @@ public interface ConversionJobRepository extends JpaRepository<ConversionJobEnti
     @Query(value = """
             select *
             from conversion_jobs
-            where status = 'PENDING'
+            where (
+                status = 'PENDING'
+                and (next_attempt_at is null or next_attempt_at <= NOW())
+            )
+            or (
+                status = 'PROCESSING'
+                and (locked_until is null or locked_until <= NOW())
+            )
             order by created_at, job_id
             limit 1
             for update skip locked""", nativeQuery = true)

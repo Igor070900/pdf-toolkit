@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -17,10 +18,10 @@ public class JobService {
     private final ConversionJobRepository conversionJobRepository;
 
     @Transactional
-    public Optional<ConversionJobEntity> claimNextJob() {
+    public Optional<ConversionJobEntity> claimNextJob(Duration leaseDuration) {
         return conversionJobRepository.findNextPendingJobForUpdate()
                 .map(job -> {
-                    job.markAsProcessing();
+                    job.markAsProcessing(leaseDuration);
                     return job;
                 });
     }

@@ -12,12 +12,15 @@ import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Getter
 @Entity
 @Table(name = "conversion_jobs")
 public class ConversionJobEntity {
@@ -61,7 +64,13 @@ public class ConversionJobEntity {
     @Column(name = "completed_at")
     private OffsetDateTime completedAt;
 
-    public ConversionJobEntity (
+    @Column(name = "next_attempt_at")
+    private OffsetDateTime nextAttemptAt;
+
+    @Column(name = "locked_until")
+    private OffsetDateTime lockedUntil;
+
+    public ConversionJobEntity(
             UUID eventId,
             String inputBucket,
             String inputObjectKey,
@@ -85,11 +94,14 @@ public class ConversionJobEntity {
         updatedAt = OffsetDateTime.now();
     }
 
-    public void markAsProcessing() {
+    public void markAsProcessing(Duration leaseDuration) {
+        OffsetDateTime now = OffsetDateTime.now();
         this.status = JobStatus.PROCESSING;
         this.attemptCount++;
-        this.startedAt = OffsetDateTime.now();
-        this.updatedAt = startedAt;
+        this.startedAt = now;
+        this.updatedAt = now;
+        this.lockedUntil = now.plus(leaseDuration);
+        this.nextAttemptAt = null;
     }
 
     public void markAsCompleted() {
@@ -97,6 +109,8 @@ public class ConversionJobEntity {
         this.completedAt = OffsetDateTime.now();
         this.updatedAt = this.completedAt;
         this.errorMessage = null;
+        this.lockedUntil = null;
+        this.nextAttemptAt = null;
     }
 
     public void markAsFailed(String errorMessage) {
@@ -104,7 +118,7 @@ public class ConversionJobEntity {
         this.completedAt = OffsetDateTime.now();
         this.updatedAt = this.completedAt;
         this.errorMessage = errorMessage;
+        this.lockedUntil = null;
+        this.nextAttemptAt = null;
     }
-
-
 }

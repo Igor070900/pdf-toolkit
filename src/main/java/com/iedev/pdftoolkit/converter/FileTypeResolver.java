@@ -34,7 +34,7 @@ public class FileTypeResolver {
         FileType fileType = EXTENSIONS.get(extension);
 
         if (fileType == null) {
-            throw new IllegalArgumentException("Неподдерживаемый формат: " + fileType);
+            throw new IllegalArgumentException("Неподдерживаемый формат: " + extension);
         }
 
         return fileType;
