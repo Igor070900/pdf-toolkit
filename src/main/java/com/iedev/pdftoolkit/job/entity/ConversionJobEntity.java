@@ -121,4 +121,13 @@ public class ConversionJobEntity {
         this.lockedUntil = null;
         this.nextAttemptAt = null;
     }
+
+    public void markAsRetry(String errorMessage, OffsetDateTime nextAttemptAt) {
+        this.status = JobStatus.PENDING;
+        this.errorMessage = errorMessage;
+        this.nextAttemptAt = nextAttemptAt;
+        this.lockedUntil = null;
+        this.completedAt = null;
+        this.updatedAt = OffsetDateTime.now();
+    }
 }

@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
+import java.time.OffsetDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -44,5 +45,32 @@ public class JobService {
                 ));
 
         job.markAsFailed(errorMessage);
+    }
+
+    @Transactional
+    public void retryOrFailJob(
+            UUID jobId,
+            String errorMessage,
+            int maxAttempts,
+            Duration initialDelay,
+            Duration maxDelay
+    ) {
+        ConversionJobEntity job = conversionJobRepository.findById(jobId)
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "Conversion job not found: " + jobId
+                ));
+
+        if (job.getAttemptCount() >= maxAttempts) {
+            job.markAsFailed(errorMessage);
+            return;
+        }
+
+        long multiplier = 1L << (job.getAttemptCount() - 1);
+        Duration retryDelay = initialDelay.multipliedBy(multiplier);
+        if (retryDelay.compareTo(maxDelay) > 0) {
+            retryDelay = maxDelay;
+        }
+
+        job.markAsRetry(errorMessage, OffsetDateTime.now().plus(retryDelay));
     }
 }
