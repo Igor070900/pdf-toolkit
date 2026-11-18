@@ -1,5 +1,7 @@
 package com.iedev.pdftoolkit.converter;
 
+import com.iedev.pdftoolkit.converter.exception.InvalidFileException;
+
 import org.springframework.stereotype.Component;
 
 import java.util.Locale;
@@ -18,13 +20,13 @@ public class FileTypeResolver {
 
     public FileType resolve(String fileName) {
         if (fileName == null || fileName.isBlank()) {
-            throw new IllegalArgumentException("Имя файла не должно быть пустым");
+            throw new InvalidFileException("Имя файла не должно быть пустым");
         }
 
         int lastDotIndex = fileName.lastIndexOf(".");
 
         if (lastDotIndex <= 0 || lastDotIndex == fileName.length() - 1) {
-            throw new IllegalArgumentException(
+            throw new InvalidFileException(
                     "Файл должен иметь правильное расширение" + fileName);
         }
 
@@ -34,7 +36,7 @@ public class FileTypeResolver {
         FileType fileType = EXTENSIONS.get(extension);
 
         if (fileType == null) {
-            throw new IllegalArgumentException("Неподдерживаемый формат: " + extension);
+            throw new InvalidFileException("Неподдерживаемый формат: " + extension);
         }
 
         return fileType;

@@ -1,5 +1,6 @@
 package com.iedev.pdftoolkit.converter;
 
+import com.iedev.pdftoolkit.converter.exception.InvalidImageException;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
@@ -28,7 +29,12 @@ public class ImageToPdfConverter implements FileConverter {
             PDPage page = new PDPage(PDRectangle.A4);
             document.addPage(page);
 
-            PDImageXObject imageXObject = PDImageXObject.createFromFileByContent(source.toFile(), document);
+            PDImageXObject imageXObject;
+
+            try {imageXObject = PDImageXObject.createFromFileByContent(source.toFile(), document);
+            } catch (IOException exception) {
+                throw new InvalidImageException("Неверное или неподдерживаемое расширение", exception);
+            }
 
             int imgWidth = imageXObject.getWidth();
             int imgHeight = imageXObject.getHeight();
