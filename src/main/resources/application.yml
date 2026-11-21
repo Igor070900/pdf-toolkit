@@ -52,3 +52,4 @@ pdf-toolkit:
     max-attempts: 3
     retry-initial-delay: 30s
     retry-max-delay: 5m
+    heartbeat-interval: 5m

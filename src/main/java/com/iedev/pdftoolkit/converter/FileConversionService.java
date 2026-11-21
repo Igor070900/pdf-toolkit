@@ -4,7 +4,6 @@ import com.iedev.pdftoolkit.converter.exception.InvalidFileException;
 import com.iedev.pdftoolkit.converter.exception.InvalidImageException;
 import com.iedev.pdftoolkit.job.worker.exception.PermanentProcessingException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.boot.context.properties.source.InvalidConfigurationPropertyValueException;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;

@@ -14,6 +14,7 @@ import java.time.Duration;
 public class WorkerProperties {
 
     private Duration leaseDuration;
+    private Duration heartbeatInterval;
     private int maxAttempts;
     private Duration retryInitialDelay;
     private Duration retryMaxDelay;

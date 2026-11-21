@@ -70,6 +70,9 @@ public class ConversionJobEntity {
     @Column(name = "locked_until")
     private OffsetDateTime lockedUntil;
 
+    @Column(name = "lock_token")
+    private UUID lockToken;
+
     public ConversionJobEntity(
             UUID eventId,
             String inputBucket,
@@ -94,7 +97,7 @@ public class ConversionJobEntity {
         updatedAt = OffsetDateTime.now();
     }
 
-    public void markAsProcessing(Duration leaseDuration) {
+    public void markAsProcessing(Duration leaseDuration, UUID lockToken) {
         OffsetDateTime now = OffsetDateTime.now();
         this.status = JobStatus.PROCESSING;
         this.attemptCount++;
@@ -102,6 +105,7 @@ public class ConversionJobEntity {
         this.updatedAt = now;
         this.lockedUntil = now.plus(leaseDuration);
         this.nextAttemptAt = null;
+        this.lockToken = lockToken;
     }
 
     public void markAsCompleted() {
@@ -111,6 +115,7 @@ public class ConversionJobEntity {
         this.errorMessage = null;
         this.lockedUntil = null;
         this.nextAttemptAt = null;
+        this.lockToken = null;
     }
 
     public void markAsFailed(String errorMessage) {
@@ -120,6 +125,7 @@ public class ConversionJobEntity {
         this.errorMessage = errorMessage;
         this.lockedUntil = null;
         this.nextAttemptAt = null;
+        this.lockToken = null;
     }
 
     public void markAsRetry(String errorMessage, OffsetDateTime nextAttemptAt) {
@@ -129,5 +135,6 @@ public class ConversionJobEntity {
         this.lockedUntil = null;
         this.completedAt = null;
         this.updatedAt = OffsetDateTime.now();
+        this.lockToken = null;
     }
 }

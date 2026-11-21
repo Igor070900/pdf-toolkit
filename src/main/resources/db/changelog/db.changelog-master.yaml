@@ -5,6 +5,8 @@ databaseChangeLog:
       file: db/changelog/changes/002-create-conversion-jobs.yaml
   - include:
       file: db/changelog/changes/003-add-job-retry-fields.yaml
+  - include:
+      file: db/changelog/changes/004-add-lock-token.yaml
 
 #  - includeAll:
 #      path: db/changelog/changes/

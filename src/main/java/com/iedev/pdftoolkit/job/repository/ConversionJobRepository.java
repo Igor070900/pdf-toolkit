@@ -35,10 +35,41 @@ public interface ConversionJobRepository extends JpaRepository<ConversionJobEnti
                 completed_at = NOW(),
                 updated_at = NOW(),
                 locked_until = NULL,
+                lock_token = NULL,
                 next_attempt_at = NULL
             WHERE status = 'PROCESSING'
               AND attempt_count >= :maxAttempts
               AND (locked_until IS NULL OR locked_until <= NOW())
             """, nativeQuery = true)
     int failExhaustedJobs(@Param("maxAttempts") int maxAttempts);
+
+    @Modifying
+    @Query(value = """
+            UPDATE conversion_jobs
+            SET locked_until = NOW() + (:leaseDurationMillis * INTERVAL '1 millisecond'),
+                updated_at = NOW()
+            WHERE job_id = :jobId
+              AND status = 'PROCESSING'
+              AND lock_token = :lockToken
+              AND locked_until > NOW()
+            """, nativeQuery = true)
+    int renewLease(
+            @Param("jobId") UUID jobId,
+            @Param("lockToken") UUID lockToken,
+            @Param("leaseDurationMillis") long leaseDurationMillis
+    );
+
+    @Query(value = """
+            SELECT *
+            FROM conversion_jobs
+            WHERE job_id = :jobId
+              AND lock_token = :lockToken
+              AND status = 'PROCESSING'
+              AND locked_until > NOW()
+            FOR UPDATE
+            """, nativeQuery = true)
+    Optional<ConversionJobEntity> findActiveJobForUpdate(
+            @Param("jobId") UUID jobId,
+            @Param("lockToken") UUID lockToken
+    );
 }
