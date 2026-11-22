@@ -1,11 +1,13 @@
 package com.iedev.pdftoolkit.job.service;
 
+import com.iedev.pdftoolkit.config.WorkerProperties;
 import com.iedev.pdftoolkit.job.JobStatus;
 import com.iedev.pdftoolkit.job.entity.ConversionJobEntity;
 import com.iedev.pdftoolkit.job.exception.LeaseLostException;
 import com.iedev.pdftoolkit.job.repository.ConversionJobRepository;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
@@ -33,6 +35,7 @@ import static org.junit.Assert.assertTrue;
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Testcontainers
+@EnableConfigurationProperties(WorkerProperties.class)
 @Import(JobService.class)
 public class JobServiceTest {
 
