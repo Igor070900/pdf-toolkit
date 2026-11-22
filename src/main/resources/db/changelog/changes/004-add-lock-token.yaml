@@ -1,0 +1,11 @@
+databaseChangeLog:
+  - changeSet:
+      id: 004-add-lock-token
+      author: igor
+      changes:
+        - addColumn:
+            tableName: conversion_jobs
+            columns:
+              - column:
+                  name: lock_token
+                  type: UUID

@@ -1,0 +1,14 @@
+databaseChangeLog:
+  - changeSet:
+      id: 003-add-job-retry-fields
+      author: igor
+      changes:
+        - addColumn:
+            tableName: conversion_jobs
+            columns:
+              - column:
+                  name: next_attempt_at
+                  type: TIMESTAMP WITH TIME ZONE
+              - column:
+                  name: locked_until
+                  type: TIMESTAMP WITH TIME ZONE

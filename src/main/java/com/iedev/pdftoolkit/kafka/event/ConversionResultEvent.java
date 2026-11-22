@@ -1,13 +1,18 @@
 package com.iedev.pdftoolkit.kafka.event;
 
+import java.util.List;
 import java.util.UUID;
 
 public record ConversionResultEvent(
         UUID eventId,
-        UUID jobId,
+        UUID correlationId,
         ConversionStatus status,
-        String resultBucket,
-        String resultObjectKey,
+        List<ConvertedFile> files,
+        List<SkippedFile> skippedFiles,
         String errorMessage
 ) {
+    public ConversionResultEvent {
+        files = List.copyOf(files);
+        skippedFiles = List.copyOf(skippedFiles);
+    }
 }
