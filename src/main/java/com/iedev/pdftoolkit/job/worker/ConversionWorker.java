@@ -145,13 +145,17 @@ public class ConversionWorker {
                                 lockToken,
                                 workerProperties.getLeaseDuration()
                         );
+
                         if (!renewed) {
                             leaseLost.set(true);
-                            log.warn("Failed to renew lease for job {}", jobId);
+                            log.warn("Lease lost for job {}", jobId);
                         }
                     } catch (Exception exception) {
-                        leaseLost.set(true);
-                        log.error("Error renewing lease for job {}", jobId, exception);
+                        log.error(
+                                "Temporary error while renewing lease for job {}",
+                                jobId,
+                                exception
+                        );
                     }
                 },
                 workerProperties.getHeartbeatInterval().toMillis(),
