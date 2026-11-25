@@ -1,6 +1,8 @@
 package com.iedev.pdftoolkit.job.worker;
 
 import com.iedev.pdftoolkit.config.WorkerProperties;
+import com.iedev.pdftoolkit.converter.ConversionResult;
+import com.iedev.pdftoolkit.converter.ConvertedFileResult;
 import com.iedev.pdftoolkit.converter.FileConversionService;
 import com.iedev.pdftoolkit.job.exception.LeaseLostException;
 import com.iedev.pdftoolkit.job.service.JobService;
@@ -64,24 +66,32 @@ public class ConversionWorker {
                         String baseName = fileName.substring(0, extensionIndex);
                         Path destination = tempDirectory.resolve(baseName + ".pdf");
 
-                        fileConversionService.convert(
-                                fileName,
-                                source,
-                                destination
-                        );
                         checkLease(leaseLost);
-
                         String outputObjectKey = "converted/" + job.getJobId() + "/" + baseName + ".pdf";
 
-                        checkLease(leaseLost);
-                        s3StorageService.upload(
+                        ConversionResult conversionResult = fileConversionService.convert(
+                                fileName,
+                                source,
+                                destination,
                                 job.getInputBucket(),
-                                outputObjectKey,
-                                destination
+                                outputObjectKey
                         );
+
+                        for (ConvertedFileResult convertedFile : conversionResult.files()) {
+                            checkLease(leaseLost);
+
+                            s3StorageService.upload(
+                                    convertedFile.bucket(),
+                                    convertedFile.objectKey(),
+                                    convertedFile.path()
+                            );
+
+                            checkLease(leaseLost);
+                        }
 
                         checkLease(leaseLost);
                         jobService.completeJob(job.getJobId(), lockToken);
+
                     } catch (LeaseLostException exception) {
                         log.warn("Lease lost for job {}", job.getJobId());
                     } catch (PermanentProcessingException exception) {
