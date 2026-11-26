@@ -14,7 +14,10 @@ import java.nio.charset.MalformedInputException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -81,6 +84,7 @@ public class FileConversionService {
 
         List<ConvertedFileResult> convertedFiles = new ArrayList<>();
         List<SkippedFile> skippedFiles = new ArrayList<>(extractionResult.skippedFiles());
+        Set<String> usedOutputPaths = new HashSet<>();
 
         String outputPrefix = outputObjectKey.substring(0, outputObjectKey.lastIndexOf('/') + 1);
 
@@ -99,18 +103,26 @@ public class FileConversionService {
 
                 FileConverter converter = converterRegistry.getConverter(fileType);
 
-                String pdfFileName = relativePath.getFileName()
-                                             .toString()
-                                             .replaceFirst("(?i)\\.[^.]+$", "") + ".pdf";
+                Path relativePdfPath = resolveUniquePdfPath(
+                        relativePath,
+                        convertedDirectory,
+                        usedOutputPaths
+                );
 
-                Path relativePdfPath = relativePath.resolveSibling(pdfFileName);
+                String pdfFileName = relativePdfPath.getFileName().toString();
+
                 Path pdfPath = convertedDirectory.resolve(relativePdfPath);
 
                 Files.createDirectories(pdfPath.getParent());
 
                 try {
                     converter.convert(extractedFile, pdfPath);
+                    usedOutputPaths.add(relativePdfPath.toString()
+                            .replace('\\', '/')
+                            .toLowerCase(Locale.ROOT));
                 } catch (InvalidImageException | MalformedInputException exception) {
+                    Files.deleteIfExists(pdfPath);
+
                     skippedFiles.add(new SkippedFile(
                             relativeFileName,
                             exception.getMessage()
@@ -137,5 +149,35 @@ public class FileConversionService {
         }
 
         return new ConversionResult(convertedFiles, skippedFiles);
+    }
+
+    private Path resolveUniquePdfPath(
+            Path relativePath,
+            Path convertedDirectory,
+            Set<String> usedOutputPaths
+    ) {
+        String originalFileName = relativePath.getFileName().toString();
+        String baseName = originalFileName.replaceFirst("(?i)\\.[^.]+$", "");
+
+        int suffix = 1;
+
+        while (true) {
+            String pdfFileName = suffix == 1
+                    ? baseName + ".pdf"
+                    : baseName + "-" + suffix + ".pdf";
+
+            Path candidate = relativePath.resolveSibling(pdfFileName);
+
+            String normalizedPath = candidate.toString()
+                    .replace('\\', '/')
+                    .toLowerCase(Locale.ROOT);
+
+            if (!usedOutputPaths.contains(normalizedPath)
+                && !Files.exists(convertedDirectory.resolve(candidate))) {
+                return candidate;
+            }
+
+            suffix++;
+        }
     }
 }

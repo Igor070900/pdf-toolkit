@@ -25,6 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -356,4 +357,119 @@ public class FileConversionServiceTest {
         verifyNoInteractions(converterRegistry);
         verifyNoInteractions(fileConverter);
     }
+
+    @Test
+    void shouldGenerateUniquePdfNamesForFilesWithSameBaseName() throws IOException {
+        Path extractionDirectory = tempDir.resolve("zip-extracted");
+
+        Path txtFile = extractionDirectory.resolve("report.txt");
+        Path pngFile = extractionDirectory.resolve("report.png");
+        Path source = tempDir.resolve("archive.zip");
+
+        Files.createDirectories(extractionDirectory);
+        Files.createFile(txtFile);
+        Files.createFile(pngFile);
+        Files.createFile(source);
+
+        FileConverter txtConverter = mock(FileConverter.class);
+        FileConverter pngConverter = mock(FileConverter.class);
+
+        when(zipExtractor.extract(any(), any())).thenReturn(
+                new ZipExtractionResult(
+                        List.of(txtFile, pngFile),
+                        List.of()
+                )
+        );
+
+        when(fileTypeResolver.resolve("archive.zip")).thenReturn(FileType.ZIP);
+        when(fileTypeResolver.resolve("report.txt")).thenReturn(FileType.TXT);
+        when(fileTypeResolver.resolve("report.png")).thenReturn(FileType.PNG);
+
+        when(converterRegistry.getConverter(FileType.TXT)).thenReturn(txtConverter);
+        when(converterRegistry.getConverter(FileType.PNG)).thenReturn(pngConverter);
+
+        doAnswer(invocation -> {
+            Path output = invocation.getArgument(1);
+            Files.createDirectories(output.getParent());
+            Files.createFile(output);
+            return null;
+        }).when(txtConverter).convert(any(), any());
+
+        doAnswer(invocation -> {
+            Path output = invocation.getArgument(1);
+            Files.createDirectories(output.getParent());
+            Files.createFile(output);
+            return null;
+        }).when(pngConverter).convert(any(), any());
+
+
+        ConversionResult result = fileConversionService.convert(
+                "archive.zip",
+                source,
+                tempDir.resolve("result.pdf"),
+                "input-bucket",
+                "converted/job-id/result.pdf"
+        );
+
+        assertEquals(2, result.files().size());
+        assertEquals("report.pdf", result.files().get(0).fileName());
+        assertEquals("report-2.pdf", result.files().get(1).fileName());
+    }
+
+    @Test
+    public void shouldPreserveSameFileNamesInDifferentDirectories() throws IOException {
+        Path source = tempDir.resolve("archive.zip");
+        Files.createFile(source);
+
+        Path extractionDirectory = tempDir.resolve("zip-extracted");
+        Path documentsDirectory = extractionDirectory.resolve("documents");
+        Path imagesDirectory = extractionDirectory.resolve("images");
+
+        Path txtFile = documentsDirectory.resolve("report.txt");
+        Path pngFile = imagesDirectory.resolve("report.png");
+
+        FileConverter txtConverter = mock(FileConverter.class);
+        FileConverter pngConverter = mock(FileConverter.class);
+
+        Files.createDirectories(documentsDirectory);
+        Files.createDirectories(imagesDirectory);
+        Files.createFile(txtFile);
+        Files.createFile(pngFile);
+
+        when(fileTypeResolver.resolve("archive.zip")).thenReturn(FileType.ZIP);
+        when(fileTypeResolver.resolve("documents/report.txt")).thenReturn(FileType.TXT);
+        when(fileTypeResolver.resolve("images/report.png")).thenReturn(FileType.PNG);
+
+        when(zipExtractor.extract(source, extractionDirectory))
+                .thenReturn(new ZipExtractionResult(
+                        List.of(txtFile, pngFile),
+                        List.of()
+                ));
+
+        when(converterRegistry.getConverter(FileType.TXT)).thenReturn(txtConverter);
+        when(converterRegistry.getConverter(FileType.PNG)).thenReturn(pngConverter);
+
+        ConversionResult result = fileConversionService.convert(
+                "archive.zip",
+                source,
+                tempDir.resolve("result.pdf"),
+                "test-bucket",
+                "converted/job-id/result.pdf"
+        );
+
+        assertEquals(2, result.files().size());
+
+        assertEquals("report.pdf", result.files().get(0).fileName());
+        assertEquals("report.pdf", result.files().get(1).fileName());
+
+        assertEquals(
+                "converted/job-id/documents/report.pdf",
+                result.files().get(0).objectKey()
+        );
+        assertEquals(
+                "converted/job-id/images/report.pdf",
+                result.files().get(1).objectKey()
+        );
+    }
+
 }
