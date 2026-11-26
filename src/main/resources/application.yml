@@ -53,3 +53,8 @@ pdf-toolkit:
     retry-initial-delay: 30s
     retry-max-delay: 5m
     heartbeat-interval: 5m
+  zip:
+    max-depth: 5
+    max-file-count: 1000
+    max-file-size-bytes: 52428800
+    max-total-size-bytes: 524288000
