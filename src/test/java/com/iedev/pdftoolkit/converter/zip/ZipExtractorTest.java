@@ -161,6 +161,34 @@ public class ZipExtractorTest {
     }
 
     @Test
+    void shouldRejectNestedArchiveExceedingMaxTotalSize() throws IOException {
+        byte[] firstFile = "123456".getBytes(StandardCharsets.UTF_8);
+        byte[] secondFile = "abcdef".getBytes(StandardCharsets.UTF_8);
+
+        byte[] nestedArchive = createZipArchive(
+                "first.txt", firstFile,
+                "second.txt", secondFile
+        );
+
+        Path archive = tempDir.resolve("nested-large-total.zip");
+        Path destination = tempDir.resolve("output");
+
+        Files.write(archive, createZipArchive("nested.zip", nestedArchive));
+
+        properties.setMaxFileSizeBytes(nestedArchive.length);
+        properties.setMaxTotalSizeBytes(
+                nestedArchive.length + firstFile.length + secondFile.length - 1
+        );
+
+        when(fileTypeResolver.resolve("first.txt")).thenReturn(FileType.TXT);
+
+        assertThrows(
+                PermanentProcessingException.class,
+                () -> zipExtractor.extract(archive, destination)
+        );
+    }
+
+    @Test
     void shouldRejectArchiveExceedingMaxFileCount() throws IOException {
         properties.setMaxFileCount(1);
 
@@ -348,6 +376,35 @@ public class ZipExtractorTest {
         assertThrows(
                 PermanentProcessingException.class,
                 () -> zipExtractor.extract(archive, destination)
+        );
+    }
+
+    @Test
+    void shouldCountNestedZipFilesTowardsMaxFileCount() throws IOException {
+        byte[] nestedArchive = createZipArchive(
+                "first.txt", "first content".getBytes(),
+                "second.txt", "second content".getBytes()
+        );
+
+        Path source = tempDir.resolve("outer.zip");
+        Files.write(source, createZipArchive("nested.zip", nestedArchive));
+
+        ZipProcessingProperties testProperties = new ZipProcessingProperties();
+        testProperties.setMaxFileCount(2);
+
+        ZipExtractor testExtractor = new ZipExtractor(
+                testProperties,
+                fileTypeResolver
+        );
+
+        when(fileTypeResolver.resolve("first.txt")).thenReturn(FileType.TXT);
+
+        assertThrows(
+                PermanentProcessingException.class,
+                () -> testExtractor.extract(
+                        source,
+                        tempDir.resolve("extracted")
+                )
         );
     }
 

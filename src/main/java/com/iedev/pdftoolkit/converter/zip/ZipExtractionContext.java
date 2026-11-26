@@ -34,5 +34,8 @@ public class ZipExtractionContext {
         if (chunkSize > properties.getMaxFileSizeBytes() - currentFileSize) {
             throw new PermanentProcessingException("Extracted file exceeds maximum allowed size");
         }
+        if (chunkSize > properties.getMaxTotalSizeBytes() - totalExtractedSize - currentFileSize) {
+            throw new PermanentProcessingException("ZIP exceeds maximum total extracted size");
+        }
     }
 }

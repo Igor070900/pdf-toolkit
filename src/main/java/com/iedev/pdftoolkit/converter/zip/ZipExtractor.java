@@ -90,6 +90,7 @@ public class ZipExtractor {
                     Files.delete(tempFile);
 
                     extractEntry(zipInput, tempFile, context);
+                    context.registerFile(Files.size(tempFile), properties);
 
                     if (isZipArchive(tempFile)) {
                         extractArchive(
@@ -102,8 +103,6 @@ public class ZipExtractor {
                                 skippedFiles
                         );
                     } else {
-                        context.registerFile(Files.size(tempFile), properties);
-
                         try {
                             FileType fileType = fileTypeResolver.resolve(entry.getName());
 
